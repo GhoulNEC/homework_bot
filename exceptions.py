@@ -1,10 +1,10 @@
 class NotSendException(Exception):
-    """Исключение не для пересылки в Telegram"""
+    """Исключение не для пересылки в Telegram."""
     pass
 
 
-class RequestError(NotSendException):
-    """Отсутствует подключение к API"""
+class ResponseError(NotSendException):
+    """Отсутствует подключение к API."""
 
 
 class EmptyResponseError(NotSendException):
@@ -13,10 +13,10 @@ class EmptyResponseError(NotSendException):
 
 
 class HTTPStatusError(NotSendException):
-    """Пришел статус отличный от 200"""
+    """Пришел статус отличный от 200."""
     pass
 
 
 class TokenError(NotSendException):
-    """Отсутствует одна из переменных окружения"""
+    """Отсутствует одна из переменных окружения."""
     pass

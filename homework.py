@@ -9,7 +9,7 @@ import telegram
 from dotenv import load_dotenv
 
 from exceptions import (EmptyResponseError, HTTPStatusError,
-                        RequestError, TokenError)
+                        ResponseError, TokenError)
 
 load_dotenv()
 
@@ -36,20 +36,20 @@ HOMEWORK_STATUSES = {
 
 
 def send_message(bot, message):
-    """Отправка сообщения в Telegram чат"""
+    """Отправка сообщения в Telegram чат."""
     bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     logging.info('Сообщение успешно отправлено')
 
 
 def get_api_answer(current_timestamp):
-    """Возвращает ответ API в случае успешного запроса"""
+    """Возвращает ответ API в случае успешного запроса."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         logging.info('получен ответ от API')
-    except ConnectionError as error:
-        raise ConnectionError(f'Проблема с подключением к API: {error}')
+    except ResponseError as error:
+        raise ResponseError(f'Проблема с подключением к API: {error}')
     if response.status_code != HTTPStatus.OK:
         raise HTTPStatusError(f'Пришел отличный от 200 статус: '
                               f'{response.status_code}')
@@ -57,7 +57,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверка корректности ответа API"""
+    """Проверка корректности ответа API."""
     if not isinstance(response, dict):
         raise TypeError('Ответ пришел не с типом данных dict')
 
@@ -73,7 +73,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Извлечение статуса работы из информации о самой домашней работе"""
+    """Извлечение статуса работы из информации о самой домашней работе."""
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if 'homework_name' not in homework:
@@ -86,7 +86,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверка доступности переменных окружения"""
+    """Проверка доступности переменных окружения."""
     env_vars = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     return all(env_vars)
 
