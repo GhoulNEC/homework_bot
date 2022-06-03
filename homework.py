@@ -33,7 +33,7 @@ def send_message(bot, message):
     try:
         logging.info('Отправляем сообщение в Telegram.')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    except TelegramError as error:
+    except TelegramError:
         raise TelegramError(f'Сбои при отправке сообщения в Telegram: '
                             f'{message}')
     else:
@@ -133,28 +133,25 @@ def main():
                 current_report['output'] = parse_status(homework[0])
                 current_report['reviewer_comment'] = last_homework.get(
                     'reviewer_comment')
-                if current_report != prev_report:
-                    send_message(bot, current_report)
-                    prev_report = current_report.copy()
-                else:
-                    logging.debug('Новые статусы отсутствуют')
             else:
                 message = 'Домашки нет, проверять нечего.'
                 send_message(bot, message)
                 current_report['output'] = message
+            if current_report != prev_report:
+                send_message(bot, current_report)
+                prev_report = current_report.copy()
+            else:
+                logging.debug('Новые статусы отсутствуют')
 
         except NotSendException as error:
-            logging.error(error)
+            logging.exception(error)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.exception(message)
             current_report['output'] = message
             if current_report != prev_report:
-                try:
-                    send_message(bot, message)
-                except Exception as error:
-                    logging.exception(f'Сообщение не было отправлено: {error}')
+                send_message(bot, message)
 
         finally:
             time.sleep(RETRY_TIME)
