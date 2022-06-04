@@ -62,10 +62,11 @@ def get_api_answer(current_timestamp):
                                   f'Текст ответа: {response.text}, '
                                   f'с параметрами: {parameters}')
         return response.json()
-    except ResponseError:
+    except ResponseError as error:
         raise ResponseError('Проблема с подключением к API. endpoint: {url}, '
                             'headers: {headers}, '
-                            'params: {params}'.format(**parameters))
+                            'params: {params}. Ошибка:'.format(**parameters) +
+                            str(error))
 
 
 def check_response(response):
@@ -107,7 +108,9 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        not_enough_tokens = 'Отсутствует одна из переменных окружения'
+        not_enough_tokens = ('Отсутствует одна из переменных окружения: '
+                             'PRACTICUM_TOKEN, TELEGRAM_TOKEN, '
+                             'TELEGRAM_CHAT_ID')
         logging.critical(not_enough_tokens)
         sys.exit(not_enough_tokens)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
@@ -117,15 +120,11 @@ def main():
         'output': '',
         'reviewer_comment': '',
     }
-    prev_report = {
-        'name': '',
-        'output': '',
-        'reviewer_comment': '',
-    }
+    prev_report = current_report.copy()
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            current_timestamp = response['current_date']
+            current_timestamp = response.get('current_date')
             homework = check_response(response)
             if homework:
                 last_homework = homework[0]
@@ -133,20 +132,19 @@ def main():
                 current_report['output'] = parse_status(last_homework)
                 current_report['reviewer_comment'] = last_homework.get(
                     'reviewer_comment')
-                if current_report != prev_report:
-                    message = (f'Домашка: {current_report["name"]}\n'
-                               f'Вердикт: {current_report["output"]}\n'
-                               f'Комментарий ревьюера: '
-                               f'{current_report["reviewer_comment"]}')
-                    send_message(bot, message)
-                    prev_report = current_report.copy()
-                else:
-                    logging.debug('Новые статусы отсутствуют')
+                message = (f'Домашка: {current_report["name"]}\n'
+                           f'Вердикт: {current_report["output"]}\n'
+                           f'Комментарий ревьюера: '
+                           f'{current_report["reviewer_comment"]}')
             else:
                 message = 'Домашки нет, проверять нечего.'
-                send_message(bot, message)
                 current_report['output'] = message
+
+            if current_report != prev_report:
+                send_message(bot, message)
                 prev_report = current_report.copy()
+            else:
+                logging.debug('Изменений нет.')
 
         except NotSendException as error:
             logging.exception(error)
