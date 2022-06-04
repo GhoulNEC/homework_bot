@@ -130,11 +130,15 @@ def main():
             if homework:
                 last_homework = homework[0]
                 current_report['name'] = last_homework.get('homework_name')
-                current_report['output'] = parse_status(homework[0])
+                current_report['output'] = parse_status(last_homework)
                 current_report['reviewer_comment'] = last_homework.get(
                     'reviewer_comment')
                 if current_report != prev_report:
-                    send_message(bot, current_report)
+                    message = (f'Домашка: {current_report["name"]}\n'
+                               f'Вердикт: {current_report["output"]}\n'
+                               f'Комментарий ревьюера: '
+                               f'{current_report["reviewer_comment"]}')
+                    send_message(bot, message)
                     prev_report = current_report.copy()
                 else:
                     logging.debug('Новые статусы отсутствуют')
@@ -142,6 +146,9 @@ def main():
                 message = 'Домашки нет, проверять нечего.'
                 send_message(bot, message)
                 current_report['output'] = message
+                current_report['name'] = ''
+                current_report['reviewer_comment'] = ''
+                prev_report = current_report.copy()
 
         except NotSendException as error:
             logging.exception(error)
@@ -149,9 +156,13 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.exception(message)
-            current_report['output'] = message
+
             if current_report != prev_report:
                 send_message(bot, message)
+                current_report['output'] = message
+                current_report['name'] = ''
+                current_report['reviewer_comment'] = ''
+                prev_report = current_report.copy()
 
         finally:
             time.sleep(RETRY_TIME)
