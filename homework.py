@@ -65,8 +65,8 @@ def get_api_answer(current_timestamp):
     except ResponseError as error:
         raise ResponseError('Проблема с подключением к API. endpoint: {url}, '
                             'headers: {headers}, '
-                            'params: {params}. Ошибка:'.format(**parameters) +
-                            str(error))
+                            'params: {params}. Ошибка:'.format(**parameters)
+                            + str(error))
 
 
 def check_response(response):
