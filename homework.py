@@ -146,8 +146,6 @@ def main():
                 message = 'Домашки нет, проверять нечего.'
                 send_message(bot, message)
                 current_report['output'] = message
-                current_report['name'] = ''
-                current_report['reviewer_comment'] = ''
                 prev_report = current_report.copy()
 
         except NotSendException as error:
@@ -160,8 +158,6 @@ def main():
             if current_report != prev_report:
                 send_message(bot, message)
                 current_report['output'] = message
-                current_report['name'] = ''
-                current_report['reviewer_comment'] = ''
                 prev_report = current_report.copy()
 
         finally:
