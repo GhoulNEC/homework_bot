@@ -65,8 +65,9 @@ def get_api_answer(current_timestamp):
     except ResponseError as error:
         raise ResponseError('Проблема с подключением к API. endpoint: {url}, '
                             'headers: {headers}, '
-                            'params: {params}. Ошибка:'.format(**parameters)
-                            + str(error))
+                            'params: {params}. '
+                            'Ошибка: {error}'.format(**parameters,
+                                                     error=error))
 
 
 def check_response(response):
@@ -124,14 +125,17 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            current_timestamp = response.get('current_date')
+            current_timestamp = response.get('current_date', current_timestamp)
             homework = check_response(response)
             if homework:
                 last_homework = homework[0]
                 current_report['name'] = last_homework.get('homework_name')
                 current_report['output'] = parse_status(last_homework)
-                current_report['reviewer_comment'] = last_homework.get(
-                    'reviewer_comment')
+                if last_homework.get('status') != 'reviewing':
+                    current_report['reviewer_comment'] = last_homework.get(
+                        'reviewer_comment')
+                else:
+                    current_report['reviewer_comment'] = ''
                 message = (f'Домашка: {current_report["name"]}\n'
                            f'Вердикт: {current_report["output"]}\n'
                            f'Комментарий ревьюера: '
@@ -152,10 +156,9 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.exception(message)
-
+            current_report['output'] = message
             if current_report != prev_report:
                 send_message(bot, message)
-                current_report['output'] = message
                 prev_report = current_report.copy()
 
         finally:
