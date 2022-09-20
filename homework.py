@@ -9,7 +9,7 @@ import telegram
 from dotenv import load_dotenv
 
 from exceptions import (EmptyResponseError, HTTPStatusError, NotSendException,
-                        ResponseError, TelegramError)
+                        ResponseError)
 
 load_dotenv()
 
@@ -33,11 +33,9 @@ def send_message(bot, message):
     try:
         logging.info('Отправляем сообщение в Telegram.')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    except TelegramError:
-        raise TelegramError(f'Сбои при отправке сообщения в Telegram: '
-                            f'{message}')
-    else:
-        logging.info(f'Сообщение успешно отправлено: {message}')
+        logging.info('Сообщение успешно отправлено')
+    except telegram.error.TelegramError as error:
+        logging.error(error)
 
 
 def get_api_answer(current_timestamp):
@@ -98,7 +96,8 @@ def parse_status(homework):
     logging.info('Получен статус домашки')
     return ('Изменился статус проверки работы "{hw_name}". '
             '{hw_status}'.format(hw_name=homework_name,
-                                 hw_status=HOMEWORK_VERDICTS[homework_status]))
+                                 hw_status=HOMEWORK_VERDICTS[homework_status])
+            )
 
 
 def check_tokens():
