@@ -68,7 +68,7 @@ python3 homework.py
 
 ***
 <details>
-    <summary style="font-size: 16pt; font-weight: bold">Авторы</summary>
+    <summary style="font-size: 16pt; font-weight: bold">Автор</summary>
 
 [Роман Евстафьев](https://github.com/GhoulNEC)
 </details>
